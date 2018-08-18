@@ -1,0 +1,8 @@
+image: level2.png
+#resolution is: 7 * 1.2192 / 338 = 0.02525
+resolution: 0.0230
+#Origin in image is: [610, 935]
+origin: [-14.03, -21.505, 0]
+occupied_thresh: 0.65
+free_thresh: 0.196
+negate: 0

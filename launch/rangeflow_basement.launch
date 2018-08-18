@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+
+<launch>
+	<param name="use_sim_time" value="true" />
+	    
+	<arg name="localpath" default="/home/fang/fuerte_workspace/bagfiles"/>
+	<node pkg="rosbag" type="play" name="rosbag" args="-r 1 -s 0
+	      $(arg localpath)/nsh_basement/dark_30hz/rgbd_1.bag
+	      $(arg localpath)/nsh_basement/dark_30hz/rgbd_2.bag
+	      $(arg localpath)/nsh_basement/dark_30hz/rgbd_3.bag
+	      --clock ">
+	</node>
+	
+	<!-- convert depth image to point cloud and downsample the cloud -->
+	<node pkg="nodelet" type="nodelet" name="depth2cloud" args="standalone depth_image_proc/point_cloud_xyz">
+	  <remap from="/camera_info" to="/camera/rgb/camera_info"/>
+	  <remap from="/image_rect" to="/camera/depth/image"/>
+	  <remap from="points" to="/point_cloud2"/>
+	</node>
+	<!-- downsampling point cloud -->
+	<node pkg="pc_filters" type="voxelFilter" name="downsampling">
+	  <param name="leaf_size" value="0.2"/>
+	  <remap from="input" to="/point_cloud2"/>
+	  <remap from="output" to="/point_cloud"/>
+	</node>
+	
+	<node pkg="rangeflow_odom" type="rangeflow_odom" name="rangeflow_odom" output="screen">
+	  <rosparam file="$(find rangeflow_odom)/config/param320.yaml" command="load"/>
+	  <param name="dvo_refine" type="bool" value="false" />
+	  
+	  <remap from="/camera/rgb/image_rect" to="/camera/rgb/image_raw" />
+	  <remap from="/camera/depth/image_rect" to="/camera/depth/image"/>
+	  <remap from="/camera/depth/camera_info" to="/camera/depth/camera_info"/>
+	</node>
+	
+	
+	######## camera_init frame is: X forward, Z downward ##########
+	<node pkg="tf" type="static_transform_publisher" name="odomtofovis_init"
+	      args="0    0    0    1.57     0    1.57  /odom_frame /camera_init 100"/>
+	    
+	<node pkg="tf" type="static_transform_publisher" name="fovistobase" 
+	      args="0    0    0    -1.57     -1.57    0  /camera /base_frame 100" />
+
+	<node pkg="tf" type="static_transform_publisher" name="basetocamera" 
+	      args="0    0    0    1.57    0.0    1.57  /base_frame /camera_depth_optical_frame 100" />
+	
+		
+	<!-- launch global octomap for visualization purpose-->
+	<node name="dynparam" pkg="dynamic_reconfigure" type="dynparam" args="set_from_parameters
+		octomap_server">
+		<param name="max_depth" type="int" value="16" />
+	</node> 
+	###### nsh_2nd_floor_cropped_5cm #######
+	<node pkg="octomap_server" type="octomap_server_node" name="octomap_server" 
+	      args="$(find mav_localization)/mapfiles/nsh_basement.bt"/>
+	
+	<node pkg="tf" type="static_transform_publisher" name="map2odom"
+	      args="0    0    0    0     0    0 /map /odom_frame 100"/>
+	
+	<!-- launch rviz -->
+	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find mav_localization)/launch/localization.rviz"/>		
+</launch>

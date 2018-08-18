@@ -1,0 +1,32 @@
+# cam_mode: 1 - 640x480, 2 - 320x240, 4 - 160x120
+cam_mode: 4
+
+
+# downsample: 1 - same resolution, 2 - rx/2, ry/2, 4 - rx/4, ry/4
+downsample: 1
+
+
+# Set the frame rate (fps) to 30 or 60 Hz
+fps: 60
+
+
+#Indicate the number of rows and columns. They should be smaller than what is indicated with the 'downsample' variable).
+rows: 60
+cols: 80
+
+
+# guassian filtering
+gaussian_mask_size: 5
+
+
+
+fovh: 3.14159 * 57.5 / 180.0
+fovv: 3.14159 * 45.0 / 180.0
+
+
+lens_disp: 0.022
+focal_length: 262.5
+
+
+previous_speed_const_weight: 0.2
+previous_speed_eig_weight: 300.0

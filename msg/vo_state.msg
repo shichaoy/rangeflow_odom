@@ -1,0 +1,5 @@
+Header header
+time referenceStamp
+int32 conditionNumber
+geometry_msgs/PoseWithCovariance pose
+geometry_msgs/TwistWithCovariance twist
